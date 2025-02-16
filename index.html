@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            /* Use min-height instead of height */
+            width: 100vw;
+            transition: background-image 1s ease-in-out;
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+        }
+
+        .container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 1rem;
+            /* Use rem for padding */
+            border-radius: 0.5rem;
+            /* Use rem for border-radius */
+            box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3);
+            /* Use rem for box-shadow */
+            height: auto;
+            width: 80%;
+            max-width: 500px;
+            display: none;
+            box-sizing: border-box;
+            /* Include padding and border in the element's total width and height */
+        }
+
+        /* Specific sizes for each container - REMOVE FIXED HEIGHTS */
+        #userInputContainer {
+            background: #ffd700;
+            border: #ff8c00;
+            width: 90%;
+            max-width: 600px;
+            /* height: 75%; */
+            /*Remove fixed height*/
+            /* max-height: 350px; */
+            /*Remove fixed height*/
+        }
+
+        #startQuizContainer {
+            background: rgb(31, 4, 105);
+            color: white;
+            /* height: 70%; */
+            /*Remove fixed height*/
+            /* max-height: 350px; */
+            /*Remove fixed height*/
+            width: 80%;
+            max-width: 590px;
+        }
+
+        #loserContainer {
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            /* height: 98%; */
+            /*Remove fixed height*/
+            /* max-height: 350px; */
+            /*Remove fixed height*/
+            width: 98%;
+            max-width: 600px;
+        }
+
+        #levelSelection {
+            background: rgba(8, 150, 180, 0.8);
+            width: 90%;
+            max-width: 605px;
+            /* height: 90%; */
+            /*Remove fixed height*/
+            /* max-height: 510px; */
+            /*Remove fixed height*/
+        }
+
+        #topicSelection {
+            background: rgba(8, 150, 180, 0.8);
+            width: 80%;
+            max-width: 505px;
+            /* height: 95%; */
+            /*Remove fixed height*/
+            /* max-height: 920px; */
+            /*Remove fixed height*/
+        }
+
+        #ghostAnimation {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background-color: black;
+            /* Semi-transparent background */
+        }
+
+        #ghostImage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            /* Adjust as needed */
+            height: auto;
+            opacity: 0;
+            animation: ghostAppear 5s ease-in-out forwards;
+            /* 4 seconds animation */
+        }
+
+        @keyframes ghostAppear {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+                /* Start small and centered */
+            }
+
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+                /* Appear at full size */
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.5);
+                /* Fade out and scale up */
+            }
+        }
+
+        #quizContainer {
+            background: rgba(8, 180, 150, 0.8);
+            background-image: url(container\ backgound.jpeg);
+            /* height: 90%; */
+            /*Remove fixed height*/
+            /* max-height: 545px; */
+            /*Remove fixed height*/
+            width: 90%;
+            max-width: 600px;
+        }
+
+        #retryContainer {
+            background: rgb(255, 84, 84);
+            height: auto;
+            /* max-height: 400px; */
+            /*Remove fixed height*/
+            width: auto;
+            max-width: 550px;
+        }
+
+        #completionContainer {
+            background: rgba(50, 200, 50, 0.8);
+            height: auto;
+            width: 80%;
+            max-width: 450px;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            /* Use rem for padding */
+            margin: 0.625rem;
+            /* Use rem for margin */
+            cursor: pointer;
+            font-size: 1.125rem;
+            /* Use rem for font-size */
+            border: none;
+            border-radius: 0.5rem;
+            /* Use rem for border-radius */
+            transition: transform 0.1s ease, background 0.3s ease;
+        }
+
+        .btn-enter {
+            background: #002147;
+            color: #ffffff;
+        }
+
+        .btn-option {
+            background: yellow;
+        }
+
+        /* Add this CSS class for level and topic selection buttons */
+        .btn-level-topic {
+            width: 15.625rem;
+            /* Use rem for width */
+            height: 3.125rem;
+            /* Use rem for height */
+            font-size: 1.5rem;
+            /* Use rem for font-size */
+            margin: 0.625rem;
+            /* Use rem for margin */
+            padding: 0.625rem;
+            /* Use rem for padding */
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-wrong {
+            background: red !important;
+        }
+
+        .btn-back {
+            background: orange;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            background-color: rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+
+        .level-button {
+            display: none;
+        }
+
+        #timer {
+            font-size: 1.5rem;
+            /* Use rem for font-size */
+            font-weight: bold;
+            color: red;
+        }
+
+        .locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+            /* Disable click events */
+        }
+
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                max-width: none;
+                /* Remove max-width on smaller screens */
+            }
+
+            .btn-level-topic {
+                width: 100%;
+                /* Make buttons full width on smaller screens */
+                margin: 0.3125rem 0;
+                /* Adjust margin */
+            }
+
+            #userInputContainer h2 {
+                font-size: 2rem;
+                /* Smaller heading */
+            }
+
+            #userInputContainer input[type="text"] {
+                font-size: 1.2rem;
+            }
+
+            #userInputContainer .btn {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (orientation: landscape) {
+            body {
+                background-size: cover;
+            }
+        }
+
+        @media (orientation: portrait) {
+            body {
+                background-size: cover;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+        let sounds = {
+            click: new Audio('button click.mp3'),
+            correct: new Audio('wohohoo.mp3'),
+            wrong: new Audio('buzzer.mp3'),
+            final: new Audio('game-level-complete.mp3'),
+            ghost: new Audio('are u ready.mp3'),
+        };
+
+        document.body.style.backgroundImage = "url('logo.png')";
+
+        setTimeout(() => {
+            document.body.style.backgroundImage = "url('user input.jpg')";
+            document.getElementById('userInputContainer').style.display = 'block';
+        }, 3000);
+
+        function levelSelectionBackground() {
+            document.body.style.backgroundImage = "url('quiz.jpg')";
+        }
+
+        function startQuizBackground() {
+            document.body.style.backgroundImage = "url('quizz.jpg')";
+        }
+    </script>
+
+    <!-- Container for Entering Name -->
+    <div id="userInputContainer" class="container" style="font-size: 32px;">
+        <h2
+            style="color: purple;font-family: Georgia, 'Times New Roman', Times, serif;font-weight: bold; font-size: 62px;">
+            Enter Your
+            Name</h2>
+        <input type="text" id="username" placeholder="Your Name" style="font-size: 28px;"><br>
+        <button class="btn btn-enter" onclick="showStartQuiz()" style="font-size: 28px;">Enter</button>
+    </div>
+
+    <!-- Container for Start Quiz -->
+    <div id="startQuizContainer" class="container">
+        <h2 style="color: white;font-size: 46px;">Ready to start the Quiz ?</h2>
+        <button class="btn btn-enter" onclick="showLevelSelection()" style="font-size: 28px; background: #ff8c00;">Start
+            a Quiz</button>
+    </div>
+
+    <!-- Container for Level Selection -->
+    <div id="levelSelection" class="container">
+        <h2 style="font-family: Verdana, Geneva, Tahoma, sans-serif;font-weight: bold;font-size: 56px;">
+            Choose a Level</h2>
+        <button id="easyBtn" class="btn btn-option btn-level-topic"
+            onclick="showTopicSelection('easy')">Easy</button><br>
+        <button id="mediumBtn" class="btn btn-option btn-level-topic"
+            onclick="showTopicSelection('medium')">Medium</button><br>
+        <button id="hardBtn" class="btn btn-option btn-level-topic locked"
+            onclick="showTopicSelection('hard')">Hard</button>
+    </div>
+
+    <!-- Container for Topic Selection -->
+    <div id="topicSelection" class="container" style="font-size: 30px;">
+        <h2 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;font-weight: bold;font-size: 44px;">
+            Choose your Topic</h2>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('Countries')">Countries</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('sports')">Sports</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('IQ')">IQ</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('Grammar')">Grammar</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('Entertainment')">Entertainment</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('Gk')">Gk</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('History')">History</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('IT')">IT</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('Maths')">Maths</button><br>
+        <button class="btn btn-option btn-level-topic" onclick="startQuiz('Science')">Science</button>
+    </div>
+
+    <!-- Add this inside the body tag, but outside other containers -->
+    <div id="ghostAnimation"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000;">
+        <img id="ghostImage" src="ready for a quiz .jpg" alt="Ghost"
+            style="width: 50%; height: 50%; object-fit: cover; opacity: 0;">
+    </div>
+
+    <!-- Container for Quiz -->
+    <div id="quizContainer" class="container">
+        <h2 id="questionText"
+            style="font-family: sans-serif; font-size: 32px;font-weight: bold; color: #ffffff;text-shadow: 2px 2px 4px rgba(0, 0, 0, alpha0,5);">
+        </h2>
+        <div id="options"
+            style="font-size: 60px; font-family: Arial, Helvetica, sans-serif;display: flex;flex-direction: column;align-items: center;gap: 10px;">
+        </div>
+        <h3 id="scoreDisplay"></h3>
+    </div>
+
+    <div id="correctAnswerContainer" class="container"
+        style="display: none; font-size: 32px; background: rgba(0, 200, 0, 0.9); color: white;">
+        <h2 style="font-family: monospace;">Correct Answer</h2>
+        <p id="correctAnswerText" style="font-size: 28px; font-weight: bold;"></p>
+        <button class="btn btn-enter" onclick="hideCorrectAnswerContainer()" style="font-size: 24px;">Next</button>
+    </div>
+
+    <!-- Container for Wrong Answer Retry -->
+    <div id="retryContainer" class="container">
+        <h2
+            style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;font-size: 40px;color: white;">
+            Oops! Wrong Answer. Try Again!</h2>
+        <button class="btn btn-option" onclick="retryQuestion('Try Again')"
+            style="font-size: 29px;background-color: darkred;color: whitesmoke;">Try Again </button>
+    </div>
+
+    <!-- Container for You're a Loser -->
+    <div id="loserContainer" class="container" style="background: rgba(255, 0, 0, 0.9); color: white;">
+        <h2
+            style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;font-size: 40px;color: white;">
+            You're a Loser! Time's Up!</h2>
+        <button class="btn btn-back" onclick="goToStartQuiz()"
+            style="font-size: 30px;background-color: darkred;color: whitesmoke;">Go to Start Quiz</button>
+    </div>
+
+
+    <!-- Container for Time Out -->
+    <div id="timeoutContainer" class="container">
+        <h2 style="font-size: 28px;font-family: sans-serif;font-weight: bold;">Time's Up! You're a Loser!</h2>
+        <button class="btn btn-back" onclick="backToUserInput()" style="font-size: 24px;">Back to User
+            Input</button>
+    </div>
+
+    <!-- Container for Level Completion -->
+    <div id="completionContainer" class="container" style="font-size: 32px;">
+        <h2 style="font-family: monospace;">Level Completed!</h2>
+        <h3 id="finalScore"></h3>
+        <button class="btn btn-back" onclick="goBackToLevels('Back')" style="font-size: 24px;">Back</button>
+    </div>
+
+    <script>
+
+        let completedTopics = {
+            easy: [],
+            medium: [],
+            hard: []
+        };
+
+        // Load completed topics from localStorage if they exist
+        if (localStorage.getItem('completedTopics')) {
+            completedTopics = JSON.parse(localStorage.getItem('completedTopics'));
+        }
+
+
+        let questions = {
+            Countries: {
+                easy: [
+                    { question: "Which country is the largest in the world by area ?", options: ["USA", "Russia", "Canada", "China"], answer: 2 },
+                    { question: "Which country is known as the Land of the Rising Sun ?", options: ["China", "Japan", "South Korea", "Thailand"], answer: 2 },
+                    { question: "Which country has the largest population in the world ?", options: ["India", "China", "USA", "Brazil"], answer: 1 },
+                    { question: "Which country is famous for the Great Wall ?", options: ["Japan", "China", "Mongolia", "India"], answer: 2 },
+                    { question: "Which country is known for its pyramids ?", options: ["Iran", "Mexico", "Egypt", "Peru"], answer: 3 },
+                    { question: "What is the official currency of the United Kingdom ?", options: ["Euro", "Dollar", "Pound Sterling", "Yen"], answer: 3 },
+                    { question: "Which country is home to the Amazon Rainforest ?", options: ["Brazil", "Colombia", "Peru", "Venezuela"], answer: 1 },
+                    { question: "Which country is the smallest by land area ?", options: ["Monaco", "San Marino", "Vatican City", "Liechtenstein"], answer: 3 },
+                    { question: "Which country is known for its kangaroos ?", options: ["South Africa", "New Zealand", "Australia", "Canada"], answer: 3 },
+                    { question: "Which country has the most official languages ?", options: ["Canada", "India", "Switzerland", "South Africa"], answer: 4 },
+                    { question: "Which country is famous for sushi ?", options: ["China", "Japan", "Thailand", "South korea"], answer: 2 },
+                    { question: "Which country has the statue of liberty ?", options: ["USA", "France", "Uk", "Italy"], answer: 1 },
+                    { question: "Which country is home to the ancient city of Machu Picchu ?", options: ["Mexico", "Peru", "Brazil", "Chile"], answer: 2 },
+                    { question: "Which country is famous for making Swiss watches ?", options: ["Germany", "Switzerland", "France", "Italy"], answer: 2 },
+                    { question: "Which country has the longest coastline in the world ?", options: ["USA", "Canada", "Australia", "Russia"], answer: 2 }
+                ],
+                medium: [
+                    { question: "Which country was formerly known as Persia ?", options: ["Iraq", "Iran", "Turkey", "Syria"], answer: 2 },
+                    { question: "Which country has the highest number of Nobel Prize winners ?", options: ["Uk", "Germany", "USA", "France"], answer: 3 },
+                    { question: "Which is the only country that spans all four hemispheres ?", options: ["Russia", "Indonesia", "Brazil", "Australia"], answer: 2 },
+                    { question: "Which country was the first to grant women the right to vote ?", options: ["USA", "UK", "New Zealand", "Canada"], answer: 3 },
+                    { question: "Which two countries share the longest international land border ?", options: ["USA & Canada", "Russia & China", "India & China", "Argentia & Brazil"], answer: 1 },
+                    { question: "Which country is known as the Land of Fire and Ice ?", options: ["Norway", "Iceland", "Finland", "Canada"], answer: 2 },
+                    { question: "Which country has the highest number of active volcanoes ?", options: ["Japan", "Indonesia", "Philippines", "Italy"], answer: 2 },
+                    { question: "Which country is famous for its fjords ?", options: ["Canada", "Norway", "Sweden", "New Zealand"], answer: 2 },
+                    { question: "Which country is the largest producer of coffee ?", options: ["Vietnam", "Brazil", "Colombia", "Ethiopia"], answer: 2 },
+                    { question: "Which country is known as the Land of the Midnight Sun ?", options: ["Russia", "Norway", "Finland", "Sweden"], answer: 2 },
+
+                ],
+                hard: [
+                    { question: "Which country has the most time zones ?", options: ["USA", "Russia", "France", "China"], answer: 3 },
+                    { question: "Which country has the deepest lake in the world ?", options: ["Canada", "Russia", "USA", "China"], answer: 2 },
+                    { question: "Which country was the first to introduce paper money ?", options: ["China", "India", "Egypt", "Greece"], answer: 1 },
+                    { question: "Which country has the most UNESCO World Heritage Sites ?", options: ["India", "China", "Italy", "France"], answer: 3 },
+                    { question: "Which country has the highest average life expectancy ?", options: ["Switzerland", "Japan", "Australia", "Sweden"], answer: 2 },
+
+                ]
+            },
+            Sports: {
+                easy: [
+                    { question: "Which country has won the most FIFA World Cups ?", options: ["Brazil", "Argentina", "Germany", "Italy"], answer: 1 },
+                    { question: "Which sport is associated with Wimbledon ?", options: ["Cricket", "Football", "Tennis", "Golf"], answer: 3 },
+                    { question: "Who is known as the God of Cricket?", options: ["Ricky Pointing", "MS Dhoni", "Sachin Tendulkar", "Virat Kohli"], answer: 3 },
+                    { question: "What is the national sport of India ?", options: ["Cricket", "Kabaddi", "Hockey", "Football"], answer: 3 },
+                    { question: "Which team won the IPL 2023 title ?", options: ["Mumbai Indians", "Chennai Super Kings", "Gujarat Titans", "Rajasthan Royal"], answer: 2 },
+                    { question: "Which country hosted the 2022 FIFA World Cup ?", options: ["Russia", "Qatar", "USA", "Brazil"], answer: 2 },
+                    { question: "Which player has won the most Grand Slam titles in men's tennis ?", options: ["Rafael Nadal", "Roger Federer", "Novak Djokovic", "Pete Samparas"], answer: 3 },
+                    { question: "Which country won the first Cricket World Cup in 1975 ?", options: ["India", "West Indies", "England", "Australia"], answer: 2 },
+                    { question: "Which sport is associated with the term Checkmate ?", options: ["Badminton", "Chess", "Polo", "Boxing"], answer: 2 },
+                    { question: "How many Olympic gold medals did Michael Phelps win in his career ?", options: ["18", "23", "28", "30"], answer: 2 },
+                    { question: "Which sport is also known as The Gentleman's Game ?", options: ["Football", "Chess", "Cricket", "Golf"], answer: 3 },
+                    { question: "Which country won the most medals in the Tokyo 2020 Olympics ?", options: ["Chnia", "USA", "Japan", "Russia"], answer: 2 },
+                    { question: "Which Indian player is known as 'Dada' in cricket ?", options: ["MS Dhoni", "Sachin Tendulkar", "Sourav Ganguly", "Virendra Sehwag"], answer: 3 },
+                    { question: "What is the standard distance of a marathon ?", options: ["21km", "30km", "42.195km", "50km"], answer: 3 },
+                    { question: "Who won the Ballon d'Or in 2023 ?", options: ["Lionel Messi", "Cristanio Ronaldo", "Erling Haaland", "Kylian Mbappe"], answer: 1 }
+                ],
+                medium: [
+                    { question: "Which Indian badminton player won silver at the 2016 Olympics ?", options: ["PV Sindhu", "Saina Nehwal", "Kidambi Srikanth", "Prakash Padukone"], answer: 1 },
+                    { question: "Who holds the record for the fastest century in ODI cricket ?", options: ["Chris Gayle", "AB de Villiers", "Virendra Sehwag", "Rohit Sharma"], answer: 2 },
+                    { question: "Which tennis player has won the most Wimbledon singles titles ?", options: ["Novak Djokovic", "Roger Frederer", "Pete Sampras", "Rafael Nadal"], answer: 2 },
+                    { question: "Who was the first Indian footballer to play for a European club ?", options: ["Bhaichung Bhutia", "Sunil Chhetri", "Gurpreet Singh Sandhu", "IM Vijayan"], answer: 1 },
+                    { question: "Which Formula 1 driver has won the most World Championships ?", options: ["Michael Schumacher", "Lewis Hamilton", "Sebastian Vetel", "Ayrton Senna"], answer: 2 },
+                    { question: "Who is the first Indian woman to win an Olympic medal in wrestling ?", options: ["Sakshi Malik", "Geeta Phogat", "Vinesh Phogat", "Babita Phogat"], answer: 1 },
+                    { question: "Which cricket ground is known as the Home of Cricket ?", options: ["MCG", "Eden Garden", "Lord's", "The Oval"], answer: 3 },
+                    { question: "Who is the first Indian to score a century in Test cricket ?", options: ["SUnil Gavaskar", "Vinoo Mankad", "Lal Amarnath", "Vijay Hazare"], answer: 3 },
+                    { question: "Which football club has won the most UEFA Champions League titles ?", options: ["FC Barcelona", "Manchestar United", "Real Madrid", "Bayern Munich"], answer: 3 },
+                    { question: "Which country won the first-ever Hockey World Cup in 1971 ?", options: ["India", "Pakistan", "Netherlands", "Australia"], answer: 2 },
+
+                ],
+                hard: [
+                    { question: "Who is the only bowler to take all 10 wickets in a Test innings twice ?", options: ["Jim Laker", "Anil Kumble", "Ajaz Patel", "Muttiah Murlitharan"], answer: 1 },
+                    { question: "Which city hosted the first-ever modern Olympics in 1896 ?", options: ["Paris", "Athens", "London", "Rome"], answer: 2 },
+                    { question: "Which cricketer has scored the most double centuries in Test cricket ?", options: ["Don Bradman", "Virat Kohli", "Brian Lara", "Sachin Tendulkar"], answer: 1 },
+                    { question: "Which country won the first-ever ICC Women’s T20 World Cup in 2009 ?", options: ["England", "Australia", "India", "New Zealand"], answer: 1 },
+                    { question: "Which tennis player won all four Grand Slams in a single year (Golden Slam) ?", options: ["ROger Frederer", "Novak Djokovic", "Rod Laver", "Steffi Graf"], answer: 4 },
+
+                ]
+            },
+            IQ: {
+                easy: [
+                    { question: "What is the next number in the series: 2, 4, 6, 8, ?", options: ["10", "12", "9", "13"], answer: 1 },
+                    { question: "Which of these is the smallest prime number ?", options: ["2", "3", "5", "1"], answer: 1 },
+                    { question: "How many sides does a hexagon have ?", options: ["5", "6", "7", "8"], answer: 2 },
+                    { question: "If a clock shows 3:15, what is the angle between the hour and minute hands ?", options: ["0 degree", "7.5 degree", "30 degree", "45 degree"], answer: 2 },
+                    { question: "What is the square root of 144 ?", options: ["10", "11", "12", "13"], answer: 1 },
+                    { question: "Which shape has four equal sides and four right angles ?", options: ["Rectangle", "Triangle", "Trapezium", "Square"], answer: 4 },
+                    { question: "If a car travels at 60 km/h for 2 hours, how far does it travel ?", options: ["60km", "90km", "100km", "120km"], answer: 4 },
+                    { question: "What is the next letter in the pattern: A, C, E, G,... ?", options: ["H", "I", "J", "k"], answer: 2 },
+                    { question: "If 5 apples cost ₹25, how much do 8 apples cost ?", options: ["Rs. 35", "Rs. 40", "Rs.50", "Rs. 60"], answer: 2 },
+                    { question: "How many months in a year have 31 days ?", options: ["4", "5", "6", "7"], answer: 4 },
+                    { question: "Which number is the odd one out 25, 36, 49, 64, 81, 99 ?", options: ["36", "49", "64", "99"], answer: 4 },
+                    { question: "What is 15% of 200 ?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["15", "20", "25", "30"], answer: 4 },
+                    { question: "If a day has 24 hours, how many minutes are in a day?", options: ["1200", "1440", "1800", "2400"], answer: 2 },
+                    { question: "Find the missing number: 11, 22, ?, 44, 5 ?", options: ["30", "33", "35", "40"], answer: 2 }
+                ],
+                medium: [
+                    { question: "Which number is a perfect cube ?", options: ["36", "64", "81", "100"], answer: 2 },
+                    { question: "If 3 cats can catch 3 mice in 3 minutes, how long will it take for 6 cats to catch 6 mice ?", options: ["1.5 minutes", "3 minutes", "6 minutes", "9 minutes"], answer: 2 },
+                    { question: "Find the missing number: 5, 10, 20, 40, ?", options: ["50", "60", "70", "80"], answer: 4 },
+                    { question: "Which is the largest three-digit prime number ?", options: ["999", "997", "995", "991"], answer: 2 },
+                    { question: "What is 2^5 ?", options: ["10", "16", "32", "64"], answer: 3 },
+                    { question: "Find the odd one out: 169, 196, 225, 255 ?", options: ["169", "196", "225", "255"], answer: 4 },
+                    { question: "What is the probability of rolling a 6 on a fair die ?", options: ["1/6", "1/5", "1/4", "1/3"], answer: 1 },
+                    { question: "How many faces does a dodecahedron have ?", options: ["10", "12", "14", "16"], answer: 2 },
+                    { question: "Solve: (25 × 4) ÷ (5 × 2) ?", options: ["8", "10", "12", "14"], answer: 1 },
+
+
+                ],
+                hard: [
+                    { question: "A train moving at 90 km/h crosses a pole in 10 seconds. What is the length of the train ?", options: ["150m", "200m", "250m", "300m"], answer: 3 },
+                    { question: "Which number is both a square and a cube ?", options: ["16", "36", "64", "100"], answer: 3 },
+                    { question: "A sum of ₹5,000 is invested at 10% compound interest per annum. What will be the amount after 2 years ?", options: ["6000", "6050", "6200", "6250"], answer: 4 },
+                    { question: "If the sum of three consecutive numbers is 72, what is the largest number ?", options: ["23", "24", "25", "26"], answer: 3 },
+                    { question: "A cube has how many edges ?", options: ["8", "10", "12", "16"], answer: 3 },
+
+                ]
+            },
+            Grammar: {
+                easy: [
+                    { question: "Which of the following is a noun ?", options: ["Jump", "Quickly", "Happiness", "Very"], answer: 3 },
+                    { question: "Choose the correct pronoun: 'John and ___ went to the park'. ?", options: ["Me", "Myself", "I", "Mine"], answer: 3 },
+                    { question: "Which of the following is an adjective ?", options: ["Run", "Beautiful", "Slowly", "And"], answer: 2 },
+                    { question: "Identify the verb in the sentence: She writes a letter?", options: ["She", "writes", "letter", "a"], answer: 2 },
+                    { question: "What is the plural of child ?", options: ["Childs", "Childes", "Children", "Childrens"], answer: 3 },
+                    { question: "Which word is an adverb ?", options: ["Carefully", "Happy", "Bright", "Smooth"], answer: 1 },
+                    { question: "Which of the following is a conjunction ?", options: ["But", "Happy", "Quickly", "Dance"], answer: 1 },
+                    { question: "Which sentence is correct ?", options: ["He go to school", "He goes to school", "He going to school", "He gone to school"], answer: 2 },
+                    { question: "What is the past tense of eat ?", options: ["Eated", "Eats", "Ate", "Eating"], answer: 3 },
+                    { question: "Which of the following is a preposition ?", options: ["On", "Sing", "clever", "Quickly"], answer: 1 },
+                    { question: "Which of the following is a preposition ?", options: ["Flock", "Crowd", "Pack", "Bunch"], answer: 1 },
+                    { question: "Choose the correct form: She ___ a doctor.?", options: ["Is", "Are", "am", "be"], answer: 1 },
+                    { question: "What is the superlative form of 'good'?", options: ["Good", "better", "best", "Most Good"], answer: 3 },
+                    { question: "Which of the following is a synonym for big ?", options: ["Small", "Huge", "Tiny", "Short"], answer: 2 },
+                    { question: "WHat is the opposite of 'happy' ?", options: ["Joyful", "Excited", "Sad", "Cheerful"], answer: 3 }
+                ],
+                medium: [
+                    {
+                        question: "Which sentence is correct?",
+                        options: ["She didn’t went to school.", "She didn’t go to school.", "She didn’t goes to school.", "She didn’t going to school."],
+                        answer: 2
+                    },
+                    {
+                        question: "Choose the correct form of 'be': 'They ___ playing football.'",
+                        options: ["Are", "Is", "Am", "Was"],
+                        answer: 1
+                    },
+                    {
+                        question: "Choose the correct sentence:",
+                        options: ["He is married with Sarah.", "He is married to Sarah.", "He is married by Sarah.", "He is married on Sarah."],
+                        answer: 2
+                    },
+                    {
+                        question: "Identify the tense: 'I will have completed my project by next Monday.'",
+                        options: ["Future Perfect", "Present Perfect", "Past Perfect", "Future Continuous"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which sentence is in the past continuous tense?",
+                        options: ["She sings beautifully.", "She was singing beautifully.", "She will sing beautifully.", "She sang beautifully."],
+                        answer: 2
+                    },
+                    {
+                        question: "Choose the correct word: 'She is very ___ in mathematics.'",
+                        options: ["Good", "Well", "Best", "Better"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which of the following is an example of a complex sentence?",
+                        options: ["She likes ice cream and she likes cake.", "She likes ice cream because it is sweet.", "She likes ice cream, she likes cake.", "She likes ice cream but dislikes cake."],
+                        answer: 2
+                    },
+                    {
+                        question: "Identify the correct form: 'He prefers coffee ___ tea.'",
+                        options: ["Than", "Over", "To", "With"],
+                        answer: 3
+                    },
+                    {
+                        question: "Which punctuation mark is used for direct speech?",
+                        options: ["Apostrophe (')", "Quotation marks (\" \")", "Hyphen (-)", "Semicolon (;)"],
+                        answer: 2
+                    },
+                    {
+                        question: "Choose the correct question tag: 'She is a doctor, ___?'",
+                        options: ["Is she", "Isn’t she", "Does she", "Didn’t she"],
+                        answer: 2
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Which of the following is an example of a metaphor?",
+                        options: ["As fast as a cheetah", "The world is a stage.", "She sings like a bird.", "He is as tall as a tree."],
+                        answer: 2 // Correct answer: "The world is a stage."
+                    },
+                    {
+                        question: "Identify the figure of speech: 'The wind whispered through the trees.'",
+                        options: ["Simile", "Metaphor", "Personification", "Hyperbole"],
+                        answer: 3 // Correct answer: "Personification"
+                    },
+                    {
+                        question: "Which sentence is correct?",
+                        options: ["He is used to waking up early.", "He is use to wake up early.", "He used to waking up early.", "He is used to wake up early."],
+                        answer: 1 // Correct answer: "He is used to waking up early."
+                    },
+                    {
+                        question: "What is the meaning of the idiom 'bite the bullet'?",
+                        options: ["To eat quickly", "To face a difficult situation bravely", "To fight someone", "To talk too much"],
+                        answer: 2 // Correct answer: "To face a difficult situation bravely"
+                    },
+                    {
+                        question: "Choose the correct indirect speech: 'She said, 'I am happy.''",
+                        options: ["She said she is happy.", "She said she was happy.", "She said, I was happy.", "She said I am happy."],
+                        answer: 2 // Correct answer: "She said she was happy."
+                    }
+                ]
+            },
+            Entertainment: {
+                easy: [
+                    {
+                        question: "Who is known as the 'King of Bollywood'?",
+                        options: ["Salman Khan", "Shah Rukh Khan", "Aamir Khan", "Ranbir Kapoor"],
+                        answer: 2,
+
+                    },
+                    {
+                        question: "Which superhero wears a red and blue costume with a spider symbol?",
+                        options: ["Superman", "Batman", "Spider-Man", "Iron Man"],
+                        answer: 3,
+
+                    },
+                    {
+                        question: "Which of these is an animated movie series by Pixar?",
+                        options: ["Fast & Furious", "Toy Story", "Mission: Impossible", "Twilight"],
+                        answer: 2,
+
+                    },
+                    {
+                        question: "Who is the host of 'Kaun Banega Crorepati'?",
+                        options: ["Salman Khan", "Anil Kapoor", "Amitabh Bachchan", "Shah Rukh Khan"],
+                        answer: 3,
+
+                    },
+                    {
+                        question: "What is the real name of Iron Man in Marvel movies?",
+                        options: ["Steve Rogers", "Tony Stark", "Bruce Wayne", "Peter Parker"],
+                        answer: 2,
+
+                    },
+                    {
+                        question: "Which Indian film won the Oscar for Best Original Song in 2023?",
+                        options: ["RRR", "Kantara", "Brahmāstra", "Vikram"],
+                        answer: 1,
+
+                    },
+                    {
+                        question: "Which streaming platform produces the series 'Stranger Things'?",
+                        options: ["Amazon Prime Video", "Disney+ Hotstar", "Netflix", "Hulu"],
+                        answer: 3,
+
+                    },
+                    {
+                        question: "Which actress is known as 'Dhak Dhak Girl' in Bollywood?",
+                        options: ["Madhuri Dixit", "Sridevi", "Rekha", "Kajol"],
+                        answer: 1,
+
+                    },
+                    {
+                        question: "Which Harry Potter house does Harry belong to?",
+                        options: ["Slytherin", "Hufflepuff", "Gryffindor", "Ravenclaw"],
+                        answer: 3,
+
+                    },
+                    {
+                        question: "Which reality TV show is hosted by Salman Khan?",
+                        options: ["KBC", "Indian Idol", "Bigg Boss", "Dance India Dance"],
+                        answer: 3,
+
+                    },
+                    {
+                        question: "Which actor played the role of Joker in 'The Dark Knight' (2008)?",
+                        options: ["Joaquin Phoenix", "Heath Ledger", "Jared Leto", "Jack Nicholson"],
+                        answer: 2,
+
+                    },
+                    {
+                        question: "Which of these is a popular animated movie by Disney?",
+                        options: ["Avatar", "Frozen", "Jurassic Park", "Titanic"],
+                        answer: 2,
+
+                    },
+                    {
+                        question: "Who directed 'Avatar' (2009)?",
+                        options: ["James Cameron", "Christopher Nolan", "Steven Spielberg", "Zack Snyder"],
+                        answer: 1,
+
+                    },
+                    {
+                        question: "Which Bollywood actor is known as 'Bhai' among fans?",
+                        options: ["Hrithik Roshan", "Salman Khan", "Akshay Kumar", "Ranveer Singh"],
+                        answer: 2,
+
+                    },
+                    {
+                        question: "Which film franchise features the character Captain Jack Sparrow?",
+                        options: ["The Hunger Games", "Pirates of the Caribbean", "Harry Potter", "Lord of the Rings"],
+                        answer: 2,
+
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Who was the first Indian actor to win a National Award for Best Actor?",
+                        options: ["Raj Kapoor", "Ashok Kumar", "Uttam Kumar", "Dilip Kumar"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which Bollywood director is known for films like 'Gangs of Wasseypur' and 'Black Friday'?",
+                        options: ["Anurag Kashyap", "Imtiaz Ali", "Zoya Akhtar", "Vishal Bhardwaj"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Who is the only actor to have played James Bond in seven official films?",
+                        options: ["Sean Connery", "Roger Moore", "Daniel Craig", "Pierce Brosnan"],
+                        answer: 2,
+                    },
+                    {
+                        question: "In which movie did Leonardo DiCaprio finally win his first Oscar?",
+                        options: ["The Wolf of Wall Street", "The Revenant", "Titanic", "Inception"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which actor played the role of Joker in 'Joker' (2019)?",
+                        options: ["Heath Ledger", "Joaquin Phoenix", "Jared Leto", "Christian Bale"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which Indian film was India’s first official entry to the Oscars?",
+                        options: ["Mother India", "Salaam Bombay", "Do Bigha Zamin", "Mughal-e-Azam"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which film features the song 'My Heart Will Go On'?",
+                        options: ["The Notebook", "Titanic", "La La Land", "The Greatest Showman"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which Hollywood film won the most Oscars in a single year?",
+                        options: ["Titanic", "Ben-Hur", "The Lord of the Rings: The Return of the King", "All of the Above (Each won 11)"],
+                        answer: 4,
+                    },
+                    {
+                        question: "Who played the main villain in 'No Country for Old Men'?",
+                        options: ["Javier Bardem", "Daniel Day-Lewis", "Josh Brolin", "Anthony Hopkins"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which was the first Indian film to win the Best Film Award at Cannes Film Festival?",
+                        options: ["Pather Panchali", "Mughal-e-Azam", "Salaam Bombay", "Masaan"],
+                        answer: 1,
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Which movie beat 'Avatar' (2009) to become the highest-grossing film ever?",
+                        options: ["Avengers: Endgame", "Titanic", "Star Wars: The Force Awakens", "The Lion King"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which filmmaker is famous for using the 'Dolly Zoom' effect in movies?",
+                        options: ["Christopher Nolan", "Alfred Hitchcock", "Quentin Tarantino", "Francis Ford Coppola"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which classic Hollywood film is known for the famous line 'Here's looking at you, kid'?",
+                        options: ["Casablanca", "Gone with the Wind", "The Godfather", "Citizen Kane"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which Indian film became the first to cross ₹1000 crore at the box office?",
+                        options: ["Baahubali 2", "Dangal", "RRR", "KGF: Chapter 2"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which legendary actor said, 'Acting is not about being famous, it's about exploring the human soul'?",
+                        options: ["Daniel Day-Lewis", "Al Pacino", "Marlon Brando", "Johnny Depp"],
+                        answer: 1,
+                    }
+                ]
+            },
+            Gk: {
+                easy: [
+                    {
+                        question: "Who wrote the Indian national anthem, 'Jana Gana Mana'?",
+                        options: ["Rabindranath Tagore", "Bankim Chandra Chattopadhyay", "Sarojini Naidu", "Subhas Chandra Bose"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which gas do plants use for photosynthesis?",
+                        options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+                        answer: 2,
+                    },
+                    {
+                        question: "How many players are there in a standard cricket team?",
+                        options: ["9", "10", "11", "12"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which is the longest river in the world?",
+                        options: ["Amazon", "Ganges", "Nile", "Yangtze"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which is the smallest state in India by area?",
+                        options: ["Sikkim", "Goa", "Manipur", "Tripura"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Who was the first Prime Minister of India?",
+                        options: ["Mahatma Gandhi", "Sardar Patel", "Jawaharlal Nehru", "Rajendra Prasad"],
+                        answer: 4,
+                    },
+                    {
+                        question: "Which is the national bird of India?",
+                        options: ["Crow", "Eagle", "Peacock", "Parrot"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which country is known as the 'Land of the Rising Sun'?",
+                        options: ["India", "Japan", "China", "Australia"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is the currency of the United Kingdom?",
+                        options: ["Euro", "Dollar", "Pound Sterling", "Yen"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which is the largest continent in the world?",
+                        options: ["Europe", "Africa", "Asia", "Antarctica"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which animal is known as the 'Ship of the Desert'?",
+                        options: ["Elephant", "Camel", "Horse", "Kangaroo"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which sport is associated with Wimbledon?",
+                        options: ["Cricket", "Football", "Tennis", "Golf"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which planet is closest to the Sun?",
+                        options: ["Venus", "Mercury", "Mars", "Earth"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Who discovered gravity?",
+                        options: ["Albert Einstein", "Galileo Galilei", "Isaac Newton", "Nikola Tesla"],
+                        answer: 4,
+                    },
+                    {
+                        question: "Which organ pumps blood in the human body?",
+                        options: ["Liver", "Kidney", "Heart", "Lungs"],
+                        answer: 3,
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Which river is known as the 'Sorrow of Bihar'?",
+                        options: ["Ganges", "Yamuna", "Kosi", "Brahmaputra"],
+                        answer: 3, // Index of the correct answer in the options array (Kosi)
+                    },
+                    {
+                        question: "Who was the first woman to go to space?",
+                        options: ["Sally Ride", "Valentina Tereshkova", "Kalpana Chawla", "Sunita Williams"],
+                        answer: 2, // Valentina Tereshkova
+                    },
+                    {
+                        question: "Which city is known as the 'Silicon Valley of India'?",
+                        options: ["Hyderabad", "Pune", "Bengaluru", "Chennai"],
+                        answer: 3, // Bengaluru
+                    },
+                    {
+                        question: "Which is the only Indian state to have English as its official language?",
+                        options: ["Nagaland", "Meghalaya", "Sikkim", "Arunachal Pradesh"],
+                        answer: 4,  // Arunachal Pradesh
+                    },
+                    {
+                        question: "Which scientist invented the first practical telephone?",
+                        options: ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "James Watt"],
+                        answer: 2,  // Alexander Graham Bell
+                    },
+                    {
+                        question: "What is the full form of GDP?",
+                        options: ["Gross Domestic Product", "General Development Plan", "Government Distribution Process", "Global Development Policy"],
+                        answer: 1, // Gross Domestic Product
+                    },
+                    {
+                        question: "Who was the first Vice President of India?",
+                        options: ["Rajendra Prasad", "Sardar Patel", "Sarvepalli Radhakrishnan", "B.R. Ambedkar"],
+                        answer: 3, // Sarvepalli Radhakrishnan
+                    },
+                    {
+                        question: "Which vitamin is also known as Ascorbic Acid?",
+                        options: ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"],
+                        answer: 3, // Vitamin C
+                    },
+                    {
+                        question: "Which Indian personality wrote the book Wings of Fire?",
+                        options: ["A.P.J. Abdul Kalam", "Ratan Tata", "Vikram Sarabhai", "Homi Bhabha"],
+                        answer: 1, // A.P.J. Abdul Kalam
+                    },
+                    {
+                        question: "Which is the oldest mountain range in India?",
+                        options: ["Himalayas", "Western Ghats", "Aravalli Range", "Satpura Range"],
+                        answer: 3, // Aravalli Range
+                    },
+                    {
+                        question: "Which Indian state has the largest forest cover?",
+                        options: ["Assam", "Madhya Pradesh", "Arunachal Pradesh", "Chhattisgarh"],
+                        answer: 2, // Madhya Pradesh
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Who was the first President of the Indian National Congress?",
+                        options: ["Mahatma Gandhi", "W.C. Bonnerjee", "Dadabhai Naoroji", "Gopal Krishna Gokhale"],
+                        answer: 2, // W.C. Bonnerjee
+                    },
+                    {
+                        question: "Which Indian classical dance form originated in Kerala?",
+                        options: ["Bharatanatyam", "Kathak", "Kathakali", "Odissi"],
+                        answer: 3, // Kathakali
+                    },
+                    {
+                        question: "Who wrote the famous book Arthashastra?",
+                        options: ["Chanakya", "Kalidas", "Bhasa", "Kautilya"],
+                        answer: 1,// Chanakya (Kautilya is another name for him)
+                    },
+                    {
+                        question: "Who was the first Indian to receive a Nobel Prize?",
+                        options: ["C.V. Raman", "Rabindranath Tagore", "Mother Teresa", "Amartya Sen"],
+                        answer: 2, // Rabindranath Tagore
+                    },
+                    {
+                        question: "Which ancient civilization built the Machu Picchu?",
+                        options: ["Aztec", "Maya", "Inca", "Greek"],
+                        answer: 3, // Inca
+                    }
+                ],
+            },
+            History: {
+                easy: [
+                    {
+                        question: "In which year did India gain independence from British rule?",
+                        options: ["1945", "1946", "1947", "1950"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Who was the first Prime Minister of India?",
+                        options: ["Lal Bahadur Shastri", "Jawaharlal Nehru", "Indira Gandhi", "B.R. Ambedkar"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which Mughal Emperor built the Taj Mahal?",
+                        options: ["Akbar", "Jahangir", "Shah Jahan", "Aurangzeb"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Who discovered America in 1492?",
+                        options: ["Marco Polo", "Ferdinand Magellan", "Christopher Columbus", "Vasco da Gama"],
+                        answer: 3,
+                    },
+                    {
+                        question: "The Battle of Plassey was fought in which year?",
+                        options: ["1757", "1764", "1857", "1942"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which of the following was the first civilization in history?",
+                        options: ["Mesopotamian Civilization", "Egyptian Civilization", "Indus Valley Civilization", "Chinese Civilization"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Who was the last Viceroy of British India?",
+                        options: ["Lord Curzon", "Lord Mountbatten", "Lord Wavell", "Lord Canning"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Who wrote the Indian National Anthem?",
+                        options: ["Bankim Chandra Chatterjee", "Rabindranath Tagore", "Subramania Bharati", "Sarojini Naidu"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which movement was launched by Mahatma Gandhi in 1942?",
+                        options: ["Civil Disobedience Movement", "Quit India Movement", "Non-Cooperation Movement", "Salt Satyagraha"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which dynasty built the famous Ajanta and Ellora caves?",
+                        options: ["Cholas", "Guptas", "Rashtrakutas", "Mauryas"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Who was the first Emperor of India?",
+                        options: ["Chandragupta Maurya", "Ashoka", "Akbar", "Samudragupta"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which Indian freedom fighter formed the Indian National Army (INA)?",
+                        options: ["Jawaharlal Nehru", "Subhas Chandra Bose", "Bhagat Singh", "Lala Lajpat Rai"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Who was the first woman Prime Minister of India?",
+                        options: ["Sarojini Naidu", "Indira Gandhi", "Pratibha Patil", "Sonia Gandhi"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What was the original name of Buddha?",
+                        options: ["Raghunath", "Gautama Siddhartha", "Ashoka", "Mahavira"],
+                        answer: 2,
+                    },
+                    {
+                        question: "The Great Wall of China was built to protect against which invaders?",
+                        options: ["Mongols", "Persians", "Romans", "Greeks"],
+                        answer: 1,
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Who led the Revolt of 1857 in Kanpur?",
+                        options: ["Nana Sahib", "Rani Lakshmibai", "Tantia Tope", "Bahadur Shah Zafar"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which Indian leader was known as the 'Iron Man of India'?",
+                        options: ["Bhagat Singh", "Subhas Chandra Bose", "Sardar Patel", "Lal Bahadur Shastri"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which battle marked the beginning of British rule in India?",
+                        options: ["Battle of Panipat", "Battle of Buxar", "Battle of Plassey", "Anglo-Mysore War"],
+                        answer: 2,
+                    },
+                    {
+                        question: "The French Revolution started in which year?",
+                        options: ["1769", "1789", "1800", "1821"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Who was the first Governor-General of Independent India?",
+                        options: ["C. Rajagopalachari", "Lord Mountbatten", "Dr. Rajendra Prasad", "Jawaharlal Nehru"],
+                        answer: 1,
+                    },
+                    {
+                        question: "What was the capital of the Vijayanagara Empire?",
+                        options: ["Madurai", "Hampi", "Kanchipuram", "Warangal"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Who was known as the 'Napoleon of India'?",
+                        options: ["Ashoka", "Samudragupta", "Harsha", "Alauddin Khilji"],
+                        answer: 2,
+                    },
+                    {
+                        question: "The Magna Carta was signed in which year?",
+                        options: ["1215", "1315", "1415", "1515"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which war ended with the Treaty of Versailles?",
+                        options: ["World War I", "World War II", "Napoleonic Wars", "Cold War"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Who was the last ruler of the Mughal Empire?",
+                        options: ["Akbar II", "Aurangzeb", "Bahadur Shah II", "Shah Alam II"],
+                        answer: 3,
+                    }
+                ],
+                hard: [
+                    { question: "Easy Question 1 for Topic 3?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+                    { question: "Easy Question 1 for Topic 1?", options: ["A", "B", "C", "D"], answer: 1 },
+
+                ]
+            },
+            IT: {
+                easy: [
+                    {
+                        question: "What is the full form of RAM?",
+                        options: ["Read Access Memory", "Random Access Memory", "Rapid Action Memory", "Read-Only Memory"],
+                        answer: 2, // Index of the correct answer (0-based)
+                    },
+                    {
+                        question: "Which software is used to create documents?",
+                        options: ["MS Paint", "MS Word", "Excel", "PowerPoint"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is the shortcut key for 'Copy' in Windows?",
+                        options: ["Ctrl + P", "Ctrl + X", "Ctrl + C", "Ctrl + V"],
+                        answer: 3,
+                    },
+                    {
+                        question: "The brain of the computer is?",
+                        options: ["RAM", "CPU", "Hard Disk", "Monitor"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which is an example of an Operating System?",
+                        options: ["Google Chrome", "Windows", "MS Word", "Python"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What does URL stand for?",
+                        options: ["Universal Resource Locator", "Uniform Resource Locator", "Unified Routing Link", "Unique Resource Link"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which file format is used for compressed files?",
+                        options: [".exe", ".zip", ".mp4", ".docx"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which key is used to undo an action in MS Office?",
+                        options: ["Ctrl + U", "Ctrl + Y", "Ctrl + Z", "Ctrl + X"],
+                        answer: 3,
+                    },
+                    {
+                        question: "What does Wi-Fi stand for?",
+                        options: ["Wireless Fidelity", "Wide Field", "Wireless Function", "Web Finder"],
+                        answer: 1,
+                    },
+                    {
+                        question: "What is the default file extension of MS Excel?",
+                        options: [".xls", ".doc", ".ppt", ".txt"],
+                        answer: 1,
+                    },
+                    {
+                        question: "What is the function of antivirus software?",
+                        options: ["Remove ads", "Protect against malware", "Speed up computer", "Create backups"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which is not a programming language?",
+                        options: ["Python", "Java", "C++", "HTML"],
+                        answer: 4, // HTML
+                    },
+                    {
+                        question: "A 1 Terabyte (TB) = ?",
+                        options: ["1000 MB", "1024 GB", "500 MB", "2048 MB"],
+                        answer: 2, // 1024 GB
+                    },
+                    {
+                        question: "Which company developed Windows OS?",
+                        options: ["Apple", "Google", "Microsoft", "IBM"],
+                        answer: 3, // Microsoft
+                    },
+                    {
+                        question: "Which device is used for video conferencing?",
+                        options: ["Mouse", "Printer", "Webcam", "Scanner"],
+                        answer: 3, // Webcam
+                    },
+                    {
+                        question: "What is cloud computing?",
+                        options: ["Storing data on physical hard drives", "Storing and accessing data over the internet", "A type of CPU", "A hardware device"],
+                        answer: 2, // Storing and accessing data over the internet
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Which port is used for HTTPS?",
+                        options: ["21", "80", "443", "8080"],
+                        answer: 3, // Index of the correct answer (0-based)
+                    },
+                    {
+                        question: "Which of the following is NOT an open-source operating system?",
+                        options: ["Ubuntu", "Fedora", "Windows", "Debian"],
+                        answer: 3,
+                    },
+                    {
+                        question: "What is the default subnet mask for a Class C IP address?",
+                        options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which of the following is a dynamically typed programming language?",
+                        options: ["Java", "C", "Python", "C++"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which database is commonly used in Android applications?",
+                        options: ["MySQL", "SQLite", "PostgreSQL", "Oracle"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is the purpose of a MAC address?",
+                        options: ["Identify a network switch", "Identify a unique device on a network", "Encrypt internet traffic", "Assign dynamic IP addresses"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which of the following is a cloud storage service?",
+                        options: ["AWS EC2", "Google Drive", "Docker", "Apache Hadoop"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which of the following is a valid IPv6 address?",
+                        options: ["192.168.1.1", "255.255.255.0", "2001:db8::ff00:42:8329", "10.0.0.1"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which data structure is best for implementing recursion?",
+                        options: ["Queue", "Stack", "Linked List", "Graph"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which cybersecurity attack involves sending fraudulent emails to trick users?",
+                        options: ["Phishing", "Ransomware", "DDoS", "Man-in-the-middle"],
+                        answer: 1,
+                    },
+
+                ],
+                hard: [
+                    {
+                        question: "Which algorithm is used for encryption in Bitcoin?",
+                        options: ["AES", "SHA-256", "RSA", "MD5"],
+                        answer: 2, // Index of the correct answer (0-based)
+                    },
+                    {
+                        question: "What is the time complexity of Binary Search?",
+                        options: ["O(n)", "O(n²)", "O(log n)", "O(1)"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which of the following is a cloud computing service model?",
+                        options: ["SaaS", "HTTP", "SSL", "XML"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Which AI technique mimics the human brain?",
+                        options: ["Machine Learning", "Neural Networks", "Data Science", "Blockchain"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which programming language is best for system programming?",
+                        options: ["HTML", "JavaScript", "C", "Python"],
+                        answer: 3,
+                    }
+
+                ]
+            },
+            Maths: {
+                easy: [
+                    {
+                        question: "What is 10% of 200?",
+                        options: ["10", "20", "30", "40"],
+                        answer: 2,
+                    },
+                    {
+                        question: "How many sides does a triangle have?",
+                        options: ["2", "3", "4", "5"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is 20 ÷ 4?",
+                        options: ["4", "5", "6", "7"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is the largest single-digit number?",
+                        options: ["8", "9", "10", "7"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which number is a prime number?",
+                        options: ["12", "15", "17", "20"],
+                        answer: 3,
+                    },
+                    {
+                        question: "If x = 5, what is x + 3?",
+                        options: ["5", "6", "7", "8"],
+                        answer: 4
+                    },
+                    {
+                        question: "What is double of 25?",
+                        options: ["40", "50", "55", "60"],
+                        answer: 2,
+                    },
+                    {
+                        question: "The sum of angles in a triangle is?",
+                        options: ["90°", "120°", "180°", "270°"],
+                        answer: 3,
+                    },
+                    {
+                        question: "What is 5³ (5 raised to the power 3)?",
+                        options: ["25", "50", "125", "150"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Which is the smallest prime number?",
+                        options: ["1", "2", "3", "5"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is 15 × 2?",
+                        options: ["25", "30", "35", "40"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Which of these is a multiple of 7?",
+                        options: ["22", "28", "35", "40"],
+                        answer: 1,
+                    },
+                    {
+                        question: "If a rectangle’s length is 10 cm and breadth is 5 cm, what is its area?",
+                        options: ["50 cm²", "55 cm²", "60 cm²", "65 cm²"],
+                        answer: 1,
+                    },
+                    {
+                        question: "What is 75 – 25?",
+                        options: ["40", "45", "50", "55"],
+                        answer: 3,
+                    },
+                    {
+                        question: "What is 1 + 1?",
+                        options: ["1", "2", "3", "4"],
+                        answer: 2,
+                    },
+                ],
+                medium: [
+                    {
+                        question: "Solve for x: 4x + 5 = 21",
+                        options: ["3", "4", "5", "6"],
+                        answer: 2,
+                    },
+                    {
+                        question: "The sum of angles in a quadrilateral is?",
+                        options: ["180°", "270°", "360°", "450°"],
+                        answer: 3,
+                    },
+                    {
+                        question: "What is 25% of 240?",
+                        options: ["40", "50", "60", "70"],
+                        answer: 3,
+                    },
+                    {
+                        question: "If x = 3, what is the value of x² + 2x – 4?",
+                        options: ["5", "7", "9", "11"],
+                        answer: 2,
+                    },
+                    {
+                        question: "How many prime numbers are there between 1 and 10?",
+                        options: ["2", "3", "4", "5"],
+                        answer: 3,
+                    },
+                    {
+                        question: "A dice is rolled. What is the probability of getting an even number?",
+                        options: ["1/6", "1/3", "1/2", "2/3"],
+                        answer: 3,
+                    },
+                    {
+                        question: "Convert 3/8 into a decimal",
+                        options: ["0.325", "0.375", "0.425", "0.450"],
+                        answer: 2,
+                    },
+                    {
+                        question: "The perimeter of a rectangle is 40 cm. If its length is 12 cm, what is its breadth?",
+                        options: ["6 cm", "8 cm", "10 cm", "12 cm"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Solve: 7² - 5²",
+                        options: ["12", "20", "24", "24"],
+                        answer: 2,
+                    },
+                    {
+                        question: "What is the LCM of 12 and 18?",
+                        options: ["24", "36", "48", "60"],
+                        answer: 2,
+                    }
+                ],
+                hard: [
+                    {
+                        question: "What is cos 0°?",
+                        options: ["0", "1", "-1", "√2"],
+                        answer: 2,
+                    },
+                    {
+                        question: "Solve for x: x² – 4x + 3 = 0",
+                        options: ["1,3", "2,3", "3,4", "1,4"],
+                        answer: 1,
+                    },
+                    {
+                        question: "Solve: (2 + 3i) × (2 – 3i)",
+                        options: ["-13", "-5", "5", "13"],
+                        answer: 4,
+                    },
+                    {
+                        question: "What is the sum of first 20 even numbers?",
+                        options: ["220", "420", "820", "1020"],
+                        answer: 3,
+                    },
+                    {
+                        question: "The sum of angles in a pentagon is?",
+                        options: ["360°", "450°", "540°", "600°"],
+                        answer: 3,
+                    }
+
+                ]
+            },
+            Science: {
+                easy: [
+                    {
+                        question: "What is the chemical symbol for water?",
+                        options: ["O₂", "H₂O", "CO₂", "NaCl"],
+                        answer: 2, // H₂O
+                    },
+                    {
+                        question: "How many planets are there in our solar system?",
+                        options: ["7", "8", "9", "10"],
+                        answer: 2, // 8
+                    },
+                    {
+                        question: "Which gas do plants absorb during photosynthesis?",
+                        options: ["Oxygen", "Carbon dioxide", "Nitrogen", "Hydrogen"],
+                        answer: 2 // Carbon dioxide
+                    },
+                    {
+                        question: "What is the hardest natural substance on Earth?",
+                        options: ["Gold", "Iron", "Diamond", "Platinum"],
+                        answer: 3, // Diamond
+                    },
+                    {
+                        question: "Which organ in the human body pumps blood?",
+                        options: ["Lungs", "Liver", "Heart", "Kidney"],
+                        answer: 3, // Heart
+                    },
+                    {
+                        question: "What is the closest planet to the Sun?",
+                        options: ["Venus", "Earth", "Mercury", "Mars"],
+                        answer: 3, // Mercury
+                    },
+                    {
+                        question: "Which vitamin is produced when the human body is exposed to sunlight?",
+                        options: ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin K"],
+                        answer: 3, // Vitamin D
+                    },
+                    {
+                        question: "What is the main gas found in the Earth's atmosphere?",
+                        options: ["Oxygen", "Nitrogen", "Carbon dioxide", "Helium"],
+                        answer: 2, // Nitrogen
+                    },
+                    {
+                        question: "How many bones are there in an adult human body?",
+                        options: ["200", "206", "210", "220"],
+                        answer: 2, // 206
+                    },
+                    {
+                        question: "Which animal is known for changing its color to blend into its surroundings?",
+                        options: ["Chameleon", "Octopus", "Snake", "Frog"],
+                        answer: 1, // Chameleon
+                    },
+                    {
+                        question: "What is the boiling point of water in Celsius?",
+                        options: ["50°C", "75°C", "100°C", "150°C"],
+                        answer: 3, // 100°C
+                    },
+                    {
+                        question: "Which organ is responsible for filtering waste from the blood?",
+                        options: ["Lungs", "Kidney", "Liver", "Stomach"],
+                        answer: 2, // Kidney
+                    },
+                    {
+                        question: "Which metal is liquid at room temperature?",
+                        options: ["Gold", "Mercury", "Silver", "Copper"],
+                        answer: 2, // Mercury
+                    },
+                    {
+                        question: "Which planet is known as the Red Planet?",
+                        options: ["Mars", "Venus", "Jupiter", "Saturn"],
+                        answer: 1, // Mars
+                    },
+                    {
+                        question: "What is the chemical formula for table salt?",
+                        options: ["NaCl", "KCl", "HCl", "CaCl₂"],
+                        answer: 1, // NaCl
+                    }
+                ],
+                medium: [
+                    {
+                        question: "What is the powerhouse of the cell?",
+                        options: ["Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus"],
+                        answer: 2, // Mitochondria
+                    },
+                    {
+                        question: "Which scientist discovered gravity?",
+                        options: ["Galileo", "Newton", "Einstein", "Tesla"],
+                        answer: 2, // Newton
+                    },
+                    {
+                        question: "What is the SI unit of force?",
+                        options: ["Joule", "Watt", "Newton", "Pascal"],
+                        answer: 3, // Newton
+                    },
+                    {
+                        question: "Which part of the eye controls the amount of light entering?",
+                        options: ["Lens", "Retina", "Iris", "Cornea"],
+                        answer: 3, // Iris
+                    },
+                    {
+                        question: "Which gas is used in balloons to make them float?",
+                        options: ["Oxygen", "Helium", "Nitrogen", "Hydrogen"],
+                        answer: 2, // Helium
+                    },
+                    {
+                        question: "What is the chemical name of baking soda?",
+                        options: ["Sodium chloride", "Sodium bicarbonate", "Calcium carbonate", "Potassium sulfate"],
+                        answer: 2, // Sodium bicarbonate
+                    },
+                    {
+                        question: "Which part of the human brain is responsible for balance and coordination?",
+                        options: ["Cerebrum", "Cerebellum", "Medulla", "Hypothalamus"],
+                        answer: 2, // Cerebellum
+                    },
+                    {
+                        question: "Which instrument is used to measure atmospheric pressure?",
+                        options: ["Thermometer", "Barometer", "Anemometer", "Hygrometer"],
+                        answer: 2, // Barometer
+                    },
+                    {
+                        question: "Which planet in the solar system has the most moons?",
+                        options: ["Jupiter", "Saturn", "Uranus", "Neptune"],
+                        answer: 1, // Jupiter
+                    },
+                    {
+                        question: "What is the main component of Earth's core?",
+                        options: ["Aluminum", "Iron", "Nickel", "Magnesium"],
+                        answer: 2, // Iron
+                    }
+                ],
+                hard: [
+                    {
+                        question: "What is the name of the deepest part of the ocean?",
+                        options: ["Mariana Trench", "Challenger Deep", "Java Trench", "Tonga Trench"],
+                        answer: 1, // Mariana Trench
+                    },
+                    {
+                        question: "Which layer of the Earth is semi-molten and responsible for plate tectonics?",
+                        options: ["Crust", "Mantle", "Outer core", "Inner core"],
+                        answer: 2, // Mantle
+                    },
+                    {
+                        question: "Which radioactive element is used in smoke detectors?",
+                        options: ["Uranium", "Plutonium", "Americium", "Radium"],
+                        answer: 3, // Americium
+                    },
+                    {
+                        question: "Which is the only organ in the human body that can regenerate itself?",
+                        options: ["Heart", "Liver", "Brain", "Kidney"],
+                        answer: 2, // Liver
+                    },
+                    {
+                        question: "What is the charge of an electron?",
+                        options: ["Positive", "Negative", "Neutral", "Variable"],
+                        answer: 2, // Negative
+                    }
+                ]
+            },
+        };
+
+        let currentLevel = null;
+        let currentTopic = null;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let wrongAttempts = 0; // Track wrong attempts for each question
+        let maxWrongAttempts = 2; // Maximum wrong attempts allowed
+
+        function showStartQuiz() {
+            let username = document.getElementById('username').value.trim();
+            if (username === "") {
+                alert("Please enter your name.");
+                return; // Stop execution if the username is empty
+            }
+            sounds.click.play();
+            document.getElementById('userInputContainer').style.display = 'none';
+            document.getElementById('startQuizContainer').style.display = 'block';
+        }
+
+
+        function showLevelSelection() {
+            sounds.click.play();
+            document.getElementById('startQuizContainer').style.display = 'none';
+            document.getElementById('levelSelection').style.display = 'block';
+            levelSelectionBackground();
+
+            // Lock Medium and Hard levels initially
+            document.getElementById('mediumBtn').classList.add('locked');
+            document.getElementById('mediumBtn').style.pointerEvents = 'none';
+            document.getElementById('hardBtn').classList.add('locked');
+            document.getElementById('hardBtn').style.pointerEvents = 'none';
+
+            // Unlock Medium level if all Easy topics are completed
+            if (completedTopics.easy.length === Object.keys(questions).length) {
+                document.getElementById('mediumBtn').classList.remove('locked');
+                document.getElementById('mediumBtn').style.pointerEvents = 'auto';
+            }
+
+            // Unlock Hard level if all Medium topics are completed
+            if (completedTopics.medium.length === Object.keys(questions).length) {
+                document.getElementById('hardBtn').classList.remove('locked');
+                document.getElementById('hardBtn').style.pointerEvents = 'auto';
+            }
+        }
+
+        function showTopicSelection(level) {
+            sounds.click.play();
+            currentLevel = level;
+
+            // Unlock Hard button if Easy and Medium are completed
+            if (level === 'easy' || level === 'medium') {
+                localStorage.setItem(level, 'completed');
+            }
+
+            if (localStorage.getItem('easy') === 'completed' && localStorage.getItem('medium') === 'completed') {
+                document.getElementById('hardBtn').classList.remove('locked');
+                document.getElementById('hardBtn').style.pointerEvents = 'auto';
+            }
+
+            document.getElementById('levelSelection').style.display = 'none';
+            document.getElementById('topicSelection').style.display = 'block';
+        }
+
+
+        function startQuiz(topic) {
+            sounds.click.play();
+            currentTopic = topic;
+
+            // Hide the topic selection container
+            document.getElementById('topicSelection').style.display = 'none';
+
+            // Show the ghost animation with a black background
+            document.getElementById('ghostAnimation').style.display = 'block';
+            sounds.ghost.play();
+
+            // Use animationend event to trigger quiz start AFTER animation
+            const ghostImage = document.getElementById('ghostImage');
+            ghostImage.addEventListener('animationend', startQuizAfterGhost);
+        }
+
+        function startQuizAfterGhost() {
+            const ghostImage = document.getElementById('ghostImage');
+            ghostImage.removeEventListener('animationend', startQuizAfterGhost); // Important: Remove the listener!
+
+            // Hide the ghost animation
+            document.getElementById('ghostAnimation').style.display = 'none';
+
+            // Show the quiz container and start the quiz
+            document.getElementById('quizContainer').style.display = 'block';
+            startQuizBackground();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetAnswerButtons();
+            let questionData = questions[currentTopic][currentLevel][currentQuestionIndex];
+            document.getElementById('questionText').innerText = questionData.question;
+            let optionsHTML = "";
+            questionData.options.forEach((opt, index) => {
+                optionsHTML += `<button class='btn btn-option' onclick='checkAnswer(${index})' 
+        style="width: 80%; font-size: 26px; padding: 12px; margin: 5px;">${opt}</button>`;
+            });
+            document.getElementById('options').innerHTML = optionsHTML;
+
+            wrongAttempts = 0; // Reset wrong attempts for the new question
+        }
+
+        function resetAnswerButtons() {
+            let buttons = document.querySelectorAll('.btn-option');
+            buttons.forEach(button => {
+                button.classList.remove('btn-correct');
+                button.classList.remove('btn-wrong');
+            });
+        }
+
+
+        function checkAnswer(selectedIndex) {
+            let questionData = questions[currentTopic][currentLevel][currentQuestionIndex];
+            let buttons = document.querySelectorAll('.btn-option');
+            let correctIndex = questionData.answer - 1;
+
+            if (selectedIndex === correctIndex) {
+                sounds.correct.play();
+                buttons[selectedIndex].classList.add('btn-correct');
+                score++;
+                document.getElementById('scoreDisplay').innerText = `Score: ${score}`;
+                showCorrectAnswerContainer(questionData.options[correctIndex]);
+            } else {
+                sounds.wrong.play();
+                buttons[selectedIndex].classList.add('btn-wrong');
+                wrongAttempts++;
+
+                if (wrongAttempts >= maxWrongAttempts) {
+                    showLoserContainer(); // Call showLoserContainer directly
+                } else {
+                    showRetryContainer();
+                }
+            }
+        }
+
+
+        function showRetryContainer() {
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('retryContainer').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('retryContainer').style.display = 'none';
+                document.getElementById('quizContainer').style.display = 'block';
+                resetAnswerButtons(); // Reset button styles
+            }, 2000); // Adjust the timeout duration as needed
+        }
+
+        function showCorrectAnswerContainer(correctOption) {
+            // Display the correct answer text
+            document.getElementById('correctAnswerText').innerText = `The correct answer is: ${correctOption}`;
+
+            // Show the correct answer container
+            document.getElementById('correctAnswerContainer').style.display = 'block';
+
+            // Hide the quiz container
+            document.getElementById('quizContainer').style.display = 'none';
+
+            // Automatically hide the correct answer container after 1 second and show the next question
+            setTimeout(() => {
+                hideCorrectAnswerContainer();
+            }, 1000); // 1 second delay
+        }
+
+        function hideCorrectAnswerContainer() {
+            // Hide the correct answer container
+            document.getElementById('correctAnswerContainer').style.display = 'none';
+
+            // Show the quiz container
+            document.getElementById('quizContainer').style.display = 'block';
+
+            // Move to the next question and reset the timer
+            nextQuestion();
+        }
+        function retryQuestion() {
+            sounds.click.play();
+            document.getElementById('retryContainer').style.display = 'none';
+            document.getElementById('quizContainer').style.display = 'block';
+            resetAnswerButtons();
+            resetTimer(); // Reset the timer
+            showQuestion(); // Show the question again with a new timer
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions[currentTopic][currentLevel].length) {
+                showQuestion(); // Show the next question
+            } else {
+                // Mark the topic as completed
+                if (!completedTopics[currentLevel].includes(currentTopic)) {
+                    completedTopics[currentLevel].push(currentTopic);
+                    localStorage.setItem('completedTopics', JSON.stringify(completedTopics));
+                }
+
+                // Check if all topics for the current level are completed
+                if (completedTopics[currentLevel].length === Object.keys(questions).length) {
+                    // Unlock the next level
+                    if (currentLevel === 'easy') {
+                        document.getElementById('mediumBtn').classList.remove('locked');
+                        document.getElementById('mediumBtn').style.pointerEvents = 'auto';
+                    } else if (currentLevel === 'medium') {
+                        document.getElementById('hardBtn').classList.remove('locked');
+                        document.getElementById('hardBtn').style.pointerEvents = 'auto';
+                    }
+                }
+
+                sounds.final.play();
+                showCompletionContainer();
+            }
+        }
+
+        function showCompletionContainer() {
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('completionContainer').style.display = 'block';
+            document.getElementById('finalScore').innerText = `Your final score is: ${score}`;
+        }
+
+        function goBackToLevels() {
+            sounds.click.play();
+            document.getElementById('completionContainer').style.display = 'none';
+            showLevelSelection();
+        }
+
+        function backToUserInput() {
+            sounds.click.play();
+            document.getElementById('loserContainer').style.display = 'none';
+            document.getElementById('timeoutContainer').style.display = 'none';
+            document.getElementById('userInputContainer').style.display = 'block';
+            currentLevel = null;
+            currentTopic = null;
+            currentQuestionIndex = 0;
+            score = 0;
+
+            // Reset completed topics tracking
+            completedTopics = {
+                easy: [],
+                medium: [],
+                hard: []
+            };
+            localStorage.removeItem('completedTopics');
+        }
+
+        function areAllTopicsCompleted(level) {
+            return completedTopics[level].length === Object.keys(questions).length;
+        }
+
+        function goToStartQuiz() {
+            sounds.click.play();
+            document.getElementById('loserContainer').style.display = 'none';
+            document.getElementById('startQuizContainer').style.display = 'block';
+            currentLevel = null;
+            currentTopic = null;
+            currentQuestionIndex = 0;
+            score = 0;
+            cleanupTimer();
+
+            // Reset completed topics tracking (if needed) -  You might want to keep the completed topics
+            // to maintain progress across games. If so, remove or comment out the following lines:
+            completedTopics = {
+                easy: [],
+                medium: [],
+                hard: []
+            };
+            localStorage.removeItem('completedTopics');
+        }
+
+
+        function resetAnswerButtons() {
+            let buttons = document.querySelectorAll('.btn-option');
+            buttons.forEach(button => {
+                button.classList.remove('btn-correct');
+                button.classList.remove('btn-wrong');
+            });
+        }
+
+        function showLoserContainer() {
+            document.getElementById('quizContainer').style.display = 'none'; // Hide quiz container
+            document.getElementById('loserContainer').style.display = 'block';
+            cleanupTimer();
+
+            // Redirect to Start Quiz after 3 seconds
+            setTimeout(() => {
+                goToStartQuiz(); // Call the function to go back to the start quiz
+            }, 3000); // 3000 milliseconds = 3 seconds
+        }
+    </script>
+
+</body>
+
+</html>
